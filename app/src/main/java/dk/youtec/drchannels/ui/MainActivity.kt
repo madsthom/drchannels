@@ -137,7 +137,7 @@ class MainActivity : AppCompatActivity(), AnkoLogger, ChannelsAdapter.OnChannelC
         disposables.clear()
     }
 
-    fun setEmptyState(show: Boolean) {
+    private fun setEmptyState(show: Boolean) {
         if (show) {
             emptyState.visibility = View.VISIBLE
             recyclerView.visibility = View.GONE
@@ -235,14 +235,11 @@ class MainActivity : AppCompatActivity(), AnkoLogger, ChannelsAdapter.OnChannelC
     private fun buildIntent(context: Context, uri: String): Intent {
         val preferExtensionDecoders = false
 
-        val intent = Intent(context, PlayerActivity::class.java)
-        with(intent) {
+        return Intent(context, PlayerActivity::class.java).apply {
             action = PlayerActivity.ACTION_VIEW
             putExtra(PlayerActivity.PREFER_EXTENSION_DECODERS, preferExtensionDecoders)
-            setData(Uri.parse(uri))
+            data = Uri.parse(uri)
         }
-
-        return intent
     }
 
     override fun showChannel(context: Context, channel: MuNowNext) {
