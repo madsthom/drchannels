@@ -11,6 +11,8 @@ import android.widget.ProgressBar
 import android.widget.TextView
 import dk.youtec.drapi.DrMuRepository
 import dk.youtec.drchannels.R
+import dk.youtec.drchannels.backend.DrMuReactiveRepository
+import dk.youtec.drchannels.ui.adapter.*
 import org.jetbrains.anko.displayMetrics
 import org.jetbrains.anko.doAsync
 import org.jetbrains.anko.find
@@ -19,7 +21,8 @@ import java.text.SimpleDateFormat
 import java.util.*
 
 class ProgramsActivity : AppCompatActivity() {
-    private val api by lazy { DrMuRepository() }
+    private val api by lazy { DrMuReactiveRepository(this) }
+    private val api2 by lazy { DrMuRepository() }
     private val recyclerView by lazy { find<RecyclerView>(R.id.recycler_view) }
     private val toolbarTitle by lazy { find<TextView>(R.id.toolbar_title) }
     private val progressBar by lazy { find<ProgressBar>(R.id.progressBar) }
@@ -49,26 +52,23 @@ class ProgramsActivity : AppCompatActivity() {
         loadPrograms()
     }
 
-    fun loadPrograms() {
+    private fun loadPrograms() {
         progressBar.visibility = View.VISIBLE
         doAsync {
             val id = intent.extras.get(CHANNEL_ID) as String
-            val programs = api.getSchedule(id, SimpleDateFormat("yyyy-MM-dd HH:MM:ss", Locale.GERMAN).format(Date()))
-
-            val currentIndex = 0
-            /*
-            val currentIndex = programs.indexOfFirst {
-                val time = System.currentTimeMillis()
-                it.startTime <= time && it.endTime >= time
-            }
-            */
+            val programs = api2.getSchedule(id, SimpleDateFormat("yyyy-MM-dd HH:MM:ss", Locale.GERMAN).format(Date()))
 
             uiThread {
                 progressBar.visibility = View.GONE
+                if (programs != null) {
+                    val currentIndex = programs.Broadcasts.indexOfFirst {
+                        val time = System.currentTimeMillis()
+                        it.StartTime.time <= time && it.EndTime.time >= time
+                    }
+                    recyclerView.adapter = ProgramAdapter(this@ProgramsActivity, id, programs, api)
+                    (recyclerView.layoutManager as LinearLayoutManager).scrollToPositionWithOffset(currentIndex, displayMetrics.heightPixels / 6)
+                }
 
-                TODO("Implement ProgramsAdapter")
-                //recyclerView.adapter = ProgramAdapter(this@ProgramsActivity, sid, programs, api)
-                (recyclerView.layoutManager as LinearLayoutManager).scrollToPositionWithOffset(currentIndex, displayMetrics.heightPixels / 6)
             }
         }
     }
