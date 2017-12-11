@@ -9,23 +9,23 @@ import android.support.v7.widget.Toolbar
 import android.view.View
 import android.widget.ProgressBar
 import android.widget.TextView
-import dk.youtec.drapi.DrMuRepository
 import dk.youtec.drchannels.R
 import dk.youtec.drchannels.backend.DrMuReactiveRepository
 import dk.youtec.drchannels.ui.adapter.*
-import org.jetbrains.anko.displayMetrics
-import org.jetbrains.anko.doAsync
-import org.jetbrains.anko.find
-import org.jetbrains.anko.uiThread
+import io.reactivex.android.schedulers.AndroidSchedulers
+import io.reactivex.disposables.CompositeDisposable
+import io.reactivex.rxkotlin.subscribeBy
+import io.reactivex.schedulers.Schedulers
+import org.jetbrains.anko.*
 import java.text.SimpleDateFormat
 import java.util.*
 
 class ProgramsActivity : AppCompatActivity() {
     private val api by lazy { DrMuReactiveRepository(this) }
-    private val api2 by lazy { DrMuRepository() }
     private val recyclerView by lazy { find<RecyclerView>(R.id.recycler_view) }
     private val toolbarTitle by lazy { find<TextView>(R.id.toolbar_title) }
     private val progressBar by lazy { find<ProgressBar>(R.id.progressBar) }
+    private val disposables = CompositeDisposable()
 
     companion object {
         val CHANNEL_NAME = "extra_channel_name"
@@ -56,20 +56,34 @@ class ProgramsActivity : AppCompatActivity() {
         progressBar.visibility = View.VISIBLE
         doAsync {
             val id = intent.extras.get(CHANNEL_ID) as String
-            val programs = api2.getSchedule(id, SimpleDateFormat("yyyy-MM-dd HH:MM:ss", Locale.GERMAN).format(Date()))
+            disposables.add(
+                    api.getScheduleObservable(id, SimpleDateFormat("yyyy-MM-dd HH:MM:ss", Locale.GERMAN).format(Date()))
+                            .subscribeOn(Schedulers.io())
+                            .observeOn(AndroidSchedulers.mainThread())
+                            .subscribeBy(
+                                    onNext = { programs ->
+                                        uiThread {
+                                            progressBar.visibility = View.GONE
+                                            if (programs != null) {
+                                                val currentIndex = programs.Broadcasts.indexOfFirst {
+                                                    val time = System.currentTimeMillis()
+                                                    it.StartTime.time <= time && it.EndTime.time >= time
+                                                }
+                                                recyclerView.adapter = ProgramAdapter(this@ProgramsActivity, id, programs, api)
+                                                (recyclerView.layoutManager as LinearLayoutManager).scrollToPositionWithOffset(currentIndex, displayMetrics.heightPixels / 6)
+                                            }
 
-            uiThread {
-                progressBar.visibility = View.GONE
-                if (programs != null) {
-                    val currentIndex = programs.Broadcasts.indexOfFirst {
-                        val time = System.currentTimeMillis()
-                        it.StartTime.time <= time && it.EndTime.time >= time
-                    }
-                    recyclerView.adapter = ProgramAdapter(this@ProgramsActivity, id, programs, api)
-                    (recyclerView.layoutManager as LinearLayoutManager).scrollToPositionWithOffset(currentIndex, displayMetrics.heightPixels / 6)
-                }
-
-            }
+                                        }
+                                    },
+                                    onError = { e ->
+                                        uiThread {
+                                            toast(
+                                                    if (e.message != null
+                                                            && e.message != "Success") e.message!!
+                                                    else getString(R.string.cantChangeChannel))
+                                        }
+                                    }
+                            ))
         }
     }
 

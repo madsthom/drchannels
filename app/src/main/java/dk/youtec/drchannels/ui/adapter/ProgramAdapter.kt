@@ -14,7 +14,6 @@ import android.widget.TextView
 import com.bumptech.glide.Glide
 import com.bumptech.glide.request.RequestOptions
 import dk.youtec.drchannels.R
-import dk.youtec.drchannels.util.SharedPreferences
 import org.jetbrains.anko.*
 import java.text.SimpleDateFormat
 import java.util.*
@@ -32,7 +31,6 @@ import dk.youtec.drapi.*
 
 class ProgramAdapter(val context: Context, val channelSID: String, val programs: Schedule, val api: DrMuReactiveRepository) : RecyclerView.Adapter<ProgramAdapter.ViewHolder>() {
 
-    private val MASK_STARTOVER_FAST_FORWARD = 5
     private var mColorMatrixColorFilter: ColorMatrixColorFilter
     private var mResources: Resources
     private val disposables = CompositeDisposable()
@@ -46,19 +44,19 @@ class ProgramAdapter(val context: Context, val channelSID: String, val programs:
     }
 
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
-        val program = programs.Broadcasts?.get(position)
+        val program = programs.Broadcasts.get(position)
 
         //Title and description
-        holder.mTitle.text = program?.Title
-        holder.mNowDescription.text = program?.Description
+        holder.mTitle.text = program.Title
+        holder.mNowDescription.text = program.Description
 
         //Time
         val localDateFormat = SimpleDateFormat("dd/MM", Locale.getDefault())
-        val startDate = localDateFormat.format(program?.StartTime)
+        val startDate = localDateFormat.format(program.StartTime)
 
         val localTimeFormat = SimpleDateFormat("HH:mm", Locale.getDefault())
-        val startTime = localTimeFormat.format(program?.StartTime)
-        val endTime = localTimeFormat.format(program?.EndTime)
+        val startTime = localTimeFormat.format(program.StartTime)
+        val endTime = localTimeFormat.format(program.EndTime)
 
         holder.mTime.text = buildString {
             append(startDate)
@@ -120,7 +118,6 @@ class ProgramAdapter(val context: Context, val channelSID: String, val programs:
     }
 
     inner class ViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
-        private val TAG = ViewHolder::class.java.simpleName
         var mHeader: View
         var mTitle: TextView
         var mNowDescription: TextView
