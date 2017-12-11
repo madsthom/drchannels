@@ -62,7 +62,7 @@ class DrMuReactiveRepository(context: Context) {
      * @param id Channel id from [Channel.Slug]
      * @param date Day to load schedule from
      */
-    fun getScheduleObservable(id: String, date: String): Observable<Schedule> {
+    fun getScheduleObservable(id: String, date: Date): Observable<Schedule> {
         return Observable.create<Schedule> { subscriber ->
             try {
                 val schedule: Schedule? = api.getSchedule(id, date)
