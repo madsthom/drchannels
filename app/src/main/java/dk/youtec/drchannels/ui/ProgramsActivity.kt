@@ -57,7 +57,7 @@ class ProgramsActivity : AppCompatActivity() {
         doAsync {
             val id = intent.extras.get(CHANNEL_ID) as String
             disposables.add(
-                    api.getScheduleObservable(id, SimpleDateFormat("yyyy-MM-dd HH:MM:ss", Locale.GERMAN).format(Date()))
+                    api.getScheduleObservable(id, Date())
                             .subscribeOn(Schedulers.io())
                             .observeOn(AndroidSchedulers.mainThread())
                             .subscribeBy(
