@@ -65,7 +65,9 @@ class DrMuReactiveRepository(context: Context) {
     fun getScheduleObservable(id: String, date: Date): Observable<Schedule> {
         return Observable.create<Schedule> { subscriber ->
             try {
-                val schedule: Schedule? = api.getSchedule(id, date)
+                val dateString = SimpleDateFormat("yyyy-MM-dd HH:MM:ss", Locale.GERMAN)
+                        .format(date)
+                val schedule: Schedule? = api.getSchedule(id, dateString)
                 if (schedule != null) {
                     subscriber.onNext(schedule)
                     subscriber.onComplete()
