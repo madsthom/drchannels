@@ -67,6 +67,7 @@ class DrMuReactiveRepository(context: Context) {
             try {
                 val dateString = SimpleDateFormat("yyyy-MM-dd HH:MM:ss", Locale.GERMAN)
                         .format(date)
+
                 val schedule: Schedule? = api.getSchedule(id, dateString)
                 if (schedule != null) {
                     subscriber.onNext(schedule)

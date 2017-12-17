@@ -46,6 +46,7 @@ class MainActivity : AppCompatActivity(), AnkoLogger, ChannelsAdapter.OnChannelC
 
     private lateinit var viewModel: ChannelsViewModel
     private var adapter: ChannelsAdapter? = null
+
     private val disposables = CompositeDisposable()
 
     companion object {
@@ -151,12 +152,14 @@ class MainActivity : AppCompatActivity(), AnkoLogger, ChannelsAdapter.OnChannelC
         // Inflate the menu; this adds items to the action bar if it is present.
         menuInflater.inflate(R.menu.menu_main, menu)
 
-        /*val listsMenu = menu.findItem(R.id.menu_favourite_lists)
+        /*
+        val listsMenu = menu.findItem(R.id.menu_favourite_lists)
         val subMenu = listsMenu.subMenu
         for ((key, name) in favouriteLists) {
             subMenu.add(listsGroup, key, Menu.NONE, name)
         }
-        listsMenu.isVisible = favouriteLists.isNotEmpty()*/
+        listsMenu.isVisible = favouriteLists.isNotEmpty()
+        */
 
         return false
     }
@@ -243,8 +246,7 @@ class MainActivity : AppCompatActivity(), AnkoLogger, ChannelsAdapter.OnChannelC
     }
 
     override fun showChannel(context: Context, channel: MuNowNext) {
-        val intent = Intent(context, ProgramsActivity::class.java)
-        with(intent) {
+        val intent = Intent(context, ProgramsActivity::class.java).apply {
             putExtra(ProgramsActivity.CHANNEL_NAME, channel.ChannelSlug.toUpperCase())
             putExtra(ProgramsActivity.CHANNEL_ID, channel.ChannelSlug)
         }

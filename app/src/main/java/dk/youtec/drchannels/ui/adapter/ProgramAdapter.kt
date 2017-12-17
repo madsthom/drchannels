@@ -25,7 +25,6 @@ import io.reactivex.schedulers.Schedulers
 import org.jetbrains.anko.find
 import org.jetbrains.anko.toast
 import dk.youtec.drchannels.backend.DrMuReactiveRepository
-import io.reactivex.disposables.CompositeDisposable
 import dk.youtec.drapi.*
 
 
@@ -33,7 +32,6 @@ class ProgramAdapter(val context: Context, val channelSID: String, val programs:
 
     private var mColorMatrixColorFilter: ColorMatrixColorFilter
     private var mResources: Resources
-    private val disposables = CompositeDisposable()
 
 
     init {
@@ -156,27 +154,26 @@ class ProgramAdapter(val context: Context, val channelSID: String, val programs:
 
             val uri = program.ProgramCard.PrimaryAsset?.Uri
             if (uri != null) {
-                disposables.add(
-                        api.getManifestObservable(uri)
-                                .subscribeOn(Schedulers.io())
-                                .observeOn(AndroidSchedulers.mainThread())
-                                .subscribeBy(
-                                        onNext = { manifest ->
-                                            val playbackUri = manifest.Links.firstOrNull { it.Target == "HLS" }?.Uri
-                                            if (playbackUri != null) {
-                                                val intent = buildIntent(context, playbackUri)
-                                                context.startActivity(intent)
-                                            } else {
-                                                context.toast("No HLS stream")
-                                            }
-                                        },
-                                        onError = { e ->
-                                            context.toast(
-                                                    if (e.message != null
-                                                            && e.message != "Success") e.message!!
-                                                    else context.getString(R.string.cantChangeChannel))
-                                        }
-                                ))
+                api.getManifestObservable(uri)
+                        .subscribeOn(Schedulers.io())
+                        .observeOn(AndroidSchedulers.mainThread())
+                        .subscribeBy(
+                                onNext = { manifest ->
+                                    val playbackUri = manifest.Links.firstOrNull { it.Target == "HLS" }?.Uri
+                                    if (playbackUri != null) {
+                                        val intent = buildIntent(context, playbackUri)
+                                        context.startActivity(intent)
+                                    } else {
+                                        context.toast("No HLS stream")
+                                    }
+                                },
+                                onError = { e ->
+                                    context.toast(
+                                            if (e.message != null
+                                                    && e.message != "Success") e.message!!
+                                            else context.getString(R.string.cantChangeChannel))
+                                }
+                        )
             } else {
                 context.toast("No stream")
             }

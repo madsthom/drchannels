@@ -31,7 +31,11 @@ import java.util.*
 fun ViewGroup.inflate(@LayoutRes layoutRes: Int, attachToRoot: Boolean = false): View =
         LayoutInflater.from(context).inflate(layoutRes, this, attachToRoot)
 
-class ChannelsAdapter(val contentView: View?, var channels: List<MuNowNext>, val listener: OnChannelClickListener) : RecyclerView.Adapter<ChannelsAdapter.ViewHolder>() {
+class ChannelsAdapter(
+        val contentView: View?,
+        var channels: List<MuNowNext>,
+        val listener: OnChannelClickListener
+) : RecyclerView.Adapter<ChannelsAdapter.ViewHolder>() {
 
     //Toggles if description and image should be shown
     private var showDetails = true

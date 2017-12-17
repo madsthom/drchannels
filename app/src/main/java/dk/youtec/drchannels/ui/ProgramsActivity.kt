@@ -13,11 +13,9 @@ import dk.youtec.drchannels.R
 import dk.youtec.drchannels.backend.DrMuReactiveRepository
 import dk.youtec.drchannels.ui.adapter.*
 import io.reactivex.android.schedulers.AndroidSchedulers
-import io.reactivex.disposables.CompositeDisposable
 import io.reactivex.rxkotlin.subscribeBy
 import io.reactivex.schedulers.Schedulers
 import org.jetbrains.anko.*
-import java.text.SimpleDateFormat
 import java.util.*
 
 class ProgramsActivity : AppCompatActivity() {
@@ -25,7 +23,6 @@ class ProgramsActivity : AppCompatActivity() {
     private val recyclerView by lazy { find<RecyclerView>(R.id.recycler_view) }
     private val toolbarTitle by lazy { find<TextView>(R.id.toolbar_title) }
     private val progressBar by lazy { find<ProgressBar>(R.id.progressBar) }
-    private val disposables = CompositeDisposable()
 
     companion object {
         val CHANNEL_NAME = "extra_channel_name"
@@ -52,38 +49,32 @@ class ProgramsActivity : AppCompatActivity() {
         loadPrograms()
     }
 
-    private fun loadPrograms() {
+    fun loadPrograms() {
         progressBar.visibility = View.VISIBLE
         doAsync {
             val id = intent.extras.get(CHANNEL_ID) as String
-            disposables.add(
-                    api.getScheduleObservable(id, Date())
-                            .subscribeOn(Schedulers.io())
-                            .observeOn(AndroidSchedulers.mainThread())
-                            .subscribeBy(
-                                    onNext = { programs ->
-                                        uiThread {
-                                            progressBar.visibility = View.GONE
-                                            if (programs != null) {
-                                                val currentIndex = programs.Broadcasts.indexOfFirst {
-                                                    val time = System.currentTimeMillis()
-                                                    it.StartTime.time <= time && it.EndTime.time >= time
-                                                }
-                                                recyclerView.adapter = ProgramAdapter(this@ProgramsActivity, id, programs, api)
-                                                (recyclerView.layoutManager as LinearLayoutManager).scrollToPositionWithOffset(currentIndex, displayMetrics.heightPixels / 6)
-                                            }
-
-                                        }
-                                    },
-                                    onError = { e ->
-                                        uiThread {
-                                            toast(
-                                                    if (e.message != null
-                                                            && e.message != "Success") e.message!!
-                                                    else getString(R.string.cantChangeChannel))
-                                        }
+            api.getScheduleObservable(id, Date())
+                    .subscribeOn(Schedulers.io())
+                    .observeOn(AndroidSchedulers.mainThread())
+                    .subscribeBy(
+                            onNext = { programs ->
+                                progressBar.visibility = View.GONE
+                                if (programs != null) {
+                                    val currentIndex = programs.Broadcasts.indexOfFirst {
+                                        val time = System.currentTimeMillis()
+                                        it.StartTime.time <= time && it.EndTime.time >= time
                                     }
-                            ))
+                                    recyclerView.adapter = ProgramAdapter(this@ProgramsActivity, id, programs, api)
+                                    (recyclerView.layoutManager as LinearLayoutManager).scrollToPositionWithOffset(currentIndex, displayMetrics.heightPixels / 6)
+                                }
+                            },
+                            onError = { e ->
+                                toast(
+                                    if (e.message != null
+                                            && e.message != "Success") e.message!!
+                                    else getString(R.string.cantChangeChannel))
+                            }
+                    )
         }
     }
 
